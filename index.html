@@ -8,6 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#6c5ce7">
+    <!-- 标准favicon -->
+    <link rel="icon" type="image/png" href="icons/icon-32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="icons/icon-16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="icons/icon-198.png" sizes="192x192">
+    <link rel="shortcut icon" href="icons/favicon.ico">
+    <!-- Apple图标 -->
     <link rel="apple-touch-icon" href="icons/icon-198.png">
     <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-198.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-198.png">
@@ -15,6 +21,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="小星星学习打卡">
+    <!-- 其他元数据 -->
+    <meta name="description" content="帮助孩子养成良好学习习惯的打卡应用">
+    <meta name="application-name" content="小星星学习打卡">
 </head>
 <body>
     <div class="container">
@@ -42,8 +51,8 @@
                     <button id="view-calendar-btn">查看日历</button>
                 </div>
                 <div class="tabs">
-                    <button class="tab-btn active" data-tab="daily-tasks">日常任务</button>
-                    <button class="tab-btn" data-tab="recurring-tasks">周期目标</button>
+                    <button class="tab-btn active" data-tab="daily-tasks">待打卡</button>
+                    <button class="tab-btn" data-tab="recurring-tasks">周期任务</button>
                 </div>
                 <div class="tab-content active" id="daily-tasks">
                     <div class="task-list" id="task-list">
@@ -60,9 +69,9 @@
                         <!-- 周期任务列表将通过 JavaScript 动态生成 -->
                     </div>
                     <div class="add-task">
-                        <input type="text" id="new-recurring-task-name" placeholder="输入周期目标名称">
+                        <input type="text" id="new-recurring-task-name" placeholder="输入周期任务名称">
                         <input type="number" id="new-recurring-task-stars" placeholder="星星数" min="1" max="10">
-                        <button id="add-recurring-task-btn">添加周期目标</button>
+                        <button id="add-recurring-task-btn">添加周期任务</button>
                     </div>
                 </div>
             </section>
@@ -210,13 +219,13 @@
         </div>
     </div>
     
-    <!-- 编辑周期目标模态框 -->
+    <!-- 编辑周期任务模态框 -->
     <div id="edit-recurring-task-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h2>编辑周期目标</h2>
+            <h2>编辑周期任务</h2>
             <div class="edit-form">
-                <input type="text" id="edit-recurring-task-name" placeholder="周期目标名称">
+                <input type="text" id="edit-recurring-task-name" placeholder="周期任务名称">
                 <input type="number" id="edit-recurring-task-stars" placeholder="星星数" min="1" max="10">
                 <input type="hidden" id="edit-recurring-task-id">
                 <div class="edit-buttons">
