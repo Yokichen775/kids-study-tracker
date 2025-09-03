@@ -673,7 +673,27 @@ button:hover {
 
 /* 响应式设计 */
 @media (max-width: 600px) {
-    .add-task, .add-wish {
+    body {
+        font-size: 16px;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .container {
+        padding: 10px;
+        max-width: 100%;
+        margin: 0;
+    }
+    
+    h1 {
+        font-size: 24px;
+    }
+    
+    h2 {
+        font-size: 20px;
+    }
+    
+    .add-task, .add-wish, .bonus-stars {
         flex-direction: column;
     }
     
@@ -681,24 +701,123 @@ button:hover {
         width: 100%;
         margin-right: 0;
         margin-bottom: 10px;
+        padding: 12px 15px; /* 增大点击区域 */
+        font-size: 16px; /* 增大字体 */
+    }
+    
+    button {
+        min-height: 44px; /* 增大点击区域 */
     }
     
     header {
         flex-direction: column;
         text-align: center;
+        padding: 15px 10px;
+    }
+    
+    .date-selector {
+        width: 100%;
+        justify-content: space-between;
+        margin: 10px 0;
+    }
+    
+    .date-selector button {
+        min-width: 40px;
+        height: 40px;
+        margin: 0 2px;
+    }
+    
+    #current-date {
+        flex-grow: 1;
+        margin: 0 5px;
+    }
+    
+    .star-container {
+        margin-top: 10px;
+        width: 100%;
     }
     
     .star-pool {
-        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .task-item, .wish-item, .history-item {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .task-actions, .wish-actions {
+        flex-direction: column;
+        gap: 8px;
+        min-width: 80px;
+    }
+    
+    .task-actions button, .wish-actions button {
+        margin: 0;
+        width: 100%;
+    }
+    
+    .task-status-btns {
+        flex-direction: row;
+        width: 100%;
     }
     
     .modal-content {
         width: 95%;
-        margin: 5% auto;
+        margin: 10% auto;
+        padding: 15px;
     }
     
     .calendar-day {
-        font-size: 12px;
+        font-size: 14px;
+        height: 35px;
+    }
+    
+    .tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px;
+    }
+    
+    .tab-btn {
+        padding: 10px 15px;
+        min-width: 100px;
+    }
+    
+    section {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .section-header button {
+        margin-top: 10px;
+    }
+    
+    /* 修复模态框在移动端的显示 */
+    .modal {
+        padding: 0;
+    }
+    
+    .close-modal {
+        top: 10px;
+        right: 10px;
+        font-size: 24px;
+        padding: 5px 10px;
+    }
+    
+    /* 增大日历中的点击区域 */
+    .calendar-days {
+        gap: 2px;
+    }
+    
+    .calendar-day {
+        height: 40px;
+        font-size: 16px;
     }
 }
 
@@ -789,4 +908,13 @@ button:hover {
 
 section {
     position: relative;
+}
+
+@media (max-width: 600px) {
+    /* 移动端上移除装饰元素的绝对定位 */
+    .tasks-section::before,
+    .wishes-section::before,
+    .bonus-section::before {
+        display: none;
+    }
 }
