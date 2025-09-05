@@ -999,7 +999,7 @@ function renderRecurringTasks() {
             <span class="task-name">${task.name}</span>
             <span class="task-stars">⭐ ${task.stars}</span>
             <div class="task-actions">
-                <button class="add-to-today-btn" data-index="${index}">添加到当天</button>
+                <button class="add-to-today-btn" data-index="${index}">添加到选择日期</button>
                 <button class="edit-recurring-btn" data-index="${index}">编辑</button>
             </div>
         `;
@@ -1014,7 +1014,7 @@ function renderRecurringTasks() {
     
     // 添加“添加到当天”按钮的事件监听
     document.querySelectorAll('.add-to-today-btn').forEach(btn => {
-        btn.addEventListener('click', addRecurringTaskToToday);
+        btn.addEventListener('click', addRecurringTaskToSelectedDate);
     });
     
     // 保存到本地存储
@@ -1115,7 +1115,7 @@ function updateRecurringTask() {
                 saveAllTasks();
                 
                 // 如果当前显示的是今天的任务，则刷新任务列表
-                if (currentDateString === today) {
+                if (currentDateString === selectedDate) {
                     renderTasks();
                 }
             }
@@ -1147,7 +1147,7 @@ function deleteRecurringTask() {
             saveAllTasks();
             
             // 如果当前显示的是今天的任务，则刷新任务列表
-            if (currentDateString === today) {
+            if (currentDateString === selectedDate) {
                 renderTasks();
             }
         }
@@ -1322,47 +1322,48 @@ document.getElementById('cancel-redeem-btn').addEventListener('click', closeModa
 // 查看已兑换心愿归档
 viewArchiveBtnEl.addEventListener('click', showWishArchive);
 
-// 将周期性任务添加到当天
-function addRecurringTaskToToday(event) {
+// 将周期性任务添加到选择的日期
+function addRecurringTaskToSelectedDate(event) {
     const index = event.target.dataset.index;
     const recurringTask = recurringTasks[index];
-    const today = formatDate(new Date());
+    const selectedDate = currentDateEl.value; // 使用用户选择的日期
     
-    // 检查当天的任务列表中是否已经有该周期性任务
-    if (!allTasks[today]) {
-        allTasks[today] = [];
+    // 检查选择日期的任务列表中是否已经有该周期性任务
+    if (!allTasks[selectedDate]) {
+        allTasks[selectedDate] = [];
     }
     
     // 检查是否已存在相同的周期性任务
-    const existingTask = allTasks[today].find(task => 
+    const existingTask = allTasks[selectedDate].find(task => 
         task.isRecurring && task.recurringId === recurringTask.id
     );
     
     if (existingTask) {
-        showNotification('该周期性任务已经存在于今天的任务列表中！', 'error');
+        showNotification('该周期性任务已经存在于选择日期的任务列表中！', 'error');
         return;
     }
     
-    // 添加到当天的任务列表
+    // 添加到选择日期的任务列表
     const newTask = {
         id: Date.now() + Math.random(),
         name: recurringTask.name,
         stars: recurringTask.stars,
         completed: false,
-        date: today,
+        date: selectedDate,
         isRecurring: true,
         recurringId: recurringTask.id
     };
     
-    allTasks[today].push(newTask);
+    allTasks[selectedDate].push(newTask);
     saveAllTasks();
     
-    // 如果当前显示的是今天的任务，则刷新任务列表
-    if (currentDateString === today) {
+    // 如果当前显示的是选择的日期的任务，则刷新任务列表
+    if (currentDateString === selectedDate) {
         renderTasks();
     }
     
-    showNotification(`周期性任务 "${recurringTask.name}" 已添加到今天的任务列表中！`);
+    const dateText = selectedDate === formatDate(new Date()) ? "今天" : formatDateChinese(new Date(selectedDate));
+    showNotification(`周期性任务 "${recurringTask.name}" 已添加到${dateText}的任务列表中！`);
 }
 
 // 显示星星修改记录
