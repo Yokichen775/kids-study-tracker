@@ -939,10 +939,16 @@ function verifyAndReset() {
     const userAnswer = parseInt(mathAnswerEl.value);
     
     if (userAnswer === correctResult) {
-        // 清除当前孩子的数据还是所有孩子的数据
-        const resetOption = confirm('是否要清除所有孩子的数据？\n点击"确定"清除所有孩子数据\n点击"取消"只清除当前孩子数据');
+        // 提供三个选项：清除所有孩子数据、只清除当前孩子数据、取消
+        const resetOption = window.prompt(
+            '请选择初始化选项：\n' +
+            '1. 清除所有孩子的数据\n' +
+            '2. 只清除当前孩子的数据\n' +
+            '3. 取消\n\n' +
+            '请输入选项数字(1-3):'
+        );
         
-        if (resetOption) {
+        if (resetOption === '1') {
             // 清除所有孩子数据
             appData = {
                 currentChild: "child_" + Date.now(),
@@ -971,7 +977,11 @@ function verifyAndReset() {
             
             // 初始化孩子选择器
             initChildSelector();
-        } else {
+            
+            // 显示成功消息
+            showNotification('已清除所有孩子的数据！', 'success');
+            
+        } else if (resetOption === '2') {
             // 只清除当前孩子数据
             currentChildData.allTasks = {};
             currentChildData.wishes = [];
@@ -987,41 +997,51 @@ function verifyAndReset() {
             recurringTasks = [];
             redeemedWishes = [];
             starsHistory = [];
+            
+            // 显示成功消息
+            showNotification('已清除当前孩子的数据！', 'success');
+            
+        } else {
+            // 取消操作
+            resetConfirmationEl.classList.add('hidden');
+            return; // 直接返回，不执行后续清除操作
         }
         
-        // 更新本地存储
-        localStorage.removeItem('allTasks');
-        localStorage.removeItem('wishes');
-        localStorage.removeItem('recurringTasks');
-        localStorage.removeItem('redeemedWishes');
-        localStorage.removeItem('starsHistory');
-        localStorage.removeItem('totalStars');
-        
-        // 清除备份数据
-        localStorage.removeItem('backupData');
-        localStorage.removeItem('lastBackupDate');
-        
-        // 清除自动备份
-        for (let i = localStorage.length - 1; i >= 0; i--) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('autoBackup_')) {
-                localStorage.removeItem(key);
+        if (resetOption === '1' || resetOption === '2') {
+            // 更新本地存储
+            localStorage.removeItem('allTasks');
+            localStorage.removeItem('wishes');
+            localStorage.removeItem('recurringTasks');
+            localStorage.removeItem('redeemedWishes');
+            localStorage.removeItem('starsHistory');
+            localStorage.removeItem('totalStars');
+            
+            if (resetOption === '1') {
+                // 清除备份数据
+                localStorage.removeItem('backupData');
+                localStorage.removeItem('lastBackupDate');
+                
+                // 清除自动备份
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('autoBackup_')) {
+                        localStorage.removeItem(key);
+                    }
+                }
             }
+            
+            // 保存新的数据结构
+            localStorage.setItem('appData', JSON.stringify(appData));
+            
+            // 重新渲染界面
+            renderTasks();
+            renderWishes();
+            renderRecurringTasks();
+            updateTotalStars();
         }
-        
-        // 保存新的数据结构
-        localStorage.setItem('appData', JSON.stringify(appData));
-        
-        // 重新渲染界面
-        renderTasks();
-        renderWishes();
-        renderRecurringTasks();
-        updateTotalStars();
         
         // 关闭确认框
         resetConfirmationEl.classList.add('hidden');
-        
-        showNotification('应用已成功初始化！');
     } else {
         showNotification('答案错误，请重新计算！', 'error');
     }
