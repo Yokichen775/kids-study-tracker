@@ -897,6 +897,18 @@ function verifyAndReset() {
         localStorage.removeItem('starsHistory');
         localStorage.removeItem('totalStars');
         
+        // 清除备份数据
+        localStorage.removeItem('backupData');
+        localStorage.removeItem('lastBackupDate');
+        
+        // 清除自动备份
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('autoBackup_')) {
+                localStorage.removeItem(key);
+            }
+        }
+        
         // 重新渲染界面
         renderTasks();
         renderWishes();
@@ -1404,6 +1416,17 @@ function showStarsHistory() {
 // 查看星星修改记录
 viewStarsHistoryBtnEl.addEventListener('click', showStarsHistory);
 
+// 数据备份与恢复相关事件
+const exportDataBtnEl = document.getElementById('export-data-btn');
+const importDataBtnEl = document.getElementById('import-data-btn');
+const importFileEl = document.getElementById('import-file');
+
+exportDataBtnEl.addEventListener('click', exportData);
+importDataBtnEl.addEventListener('click', function() {
+    importFileEl.click();
+});
+importFileEl.addEventListener('change', importData);
+
 // 初始化相关事件
 showResetBtnEl.addEventListener('click', showResetConfirmation);
 confirmResetBtnEl.addEventListener('click', verifyAndReset);
@@ -1411,10 +1434,232 @@ cancelResetBtnEl.addEventListener('click', function() {
     resetConfirmationEl.classList.add('hidden');
 });
 
+// 数据导出功能
+function exportData() {
+    // 收集所有需要导出的数据
+    const exportData = {
+        allTasks: allTasks,
+        wishes: wishes,
+        totalStars: totalStars,
+        recurringTasks: recurringTasks,
+        redeemedWishes: redeemedWishes,
+        starsHistory: starsHistory,
+        timestamp: new Date().getTime(),
+        version: '1.0'
+    };
+    
+    // 将数据转换为JSON字符串
+    const dataStr = JSON.stringify(exportData);
+    
+    // 创建下载链接
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    // 创建下载链接元素
+    const exportFileDefaultName = '小星星学习打卡数据_' + formatDate(new Date()) + '.json';
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    // 同时保存一份到localStorage作为备份
+    saveAllData();
+}
+
+// 数据导入功能
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            
+            // 验证数据格式
+            if (!importedData.version || !importedData.allTasks || !importedData.wishes) {
+                alert('导入的数据格式不正确');
+                return;
+            }
+            
+            // 确认导入
+            if (confirm('确定要导入数据吗？这将覆盖当前所有数据。')) {
+                // 导入数据
+                allTasks = importedData.allTasks || {};
+                wishes = importedData.wishes || [];
+                totalStars = importedData.totalStars || 0;
+                recurringTasks = importedData.recurringTasks || [];
+                redeemedWishes = importedData.redeemedWishes || [];
+                starsHistory = importedData.starsHistory || [];
+                
+                // 保存到localStorage
+                saveAllData();
+                
+                // 重新渲染页面
+                renderTasks();
+                renderWishes();
+                renderRecurringTasks();
+                updateTotalStars();
+                
+                alert('数据导入成功！');
+            }
+        } catch (error) {
+            alert('导入数据时出错: ' + error.message);
+        }
+        
+        // 清空文件输入框，允许重新选择同一文件
+        event.target.value = '';
+    };
+    
+    reader.readAsText(file);
+}
+
+// 保存所有数据到localStorage并创建备份
+function saveAllData() {
+    try {
+        // 保存所有数据
+        localStorage.setItem('allTasks', JSON.stringify(allTasks));
+        localStorage.setItem('wishes', JSON.stringify(wishes));
+        localStorage.setItem('totalStars', totalStars);
+        localStorage.setItem('recurringTasks', JSON.stringify(recurringTasks));
+        localStorage.setItem('redeemedWishes', JSON.stringify(redeemedWishes));
+        localStorage.setItem('starsHistory', JSON.stringify(starsHistory));
+        
+        // 创建备份数据
+        const backupData = {
+            allTasks: allTasks,
+            wishes: wishes,
+            totalStars: totalStars,
+            recurringTasks: recurringTasks,
+            redeemedWishes: redeemedWishes,
+            starsHistory: starsHistory,
+            timestamp: new Date().getTime(),
+            version: '1.0'
+        };
+        
+        // 保存完整备份
+        localStorage.setItem('backupData', JSON.stringify(backupData));
+        
+        // 每天自动创建一个备份
+        const today = formatDate(new Date());
+        const lastBackupDate = localStorage.getItem('lastBackupDate');
+        
+        if (lastBackupDate !== today) {
+            localStorage.setItem('autoBackup_' + today, JSON.stringify(backupData));
+            localStorage.setItem('lastBackupDate', today);
+            
+            // 保留最近7天的自动备份
+            cleanupOldBackups();
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('保存数据失败:', error);
+        alert('数据保存失败，请尝试导出数据进行备份！');
+        return false;
+    }
+}
+
+// 清理旧的自动备份
+function cleanupOldBackups() {
+    try {
+        const MAX_BACKUPS = 7; // 保留最近7天的备份
+        const backupKeys = [];
+        
+        // 收集所有自动备份的键
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('autoBackup_')) {
+                backupKeys.push({
+                    key: key,
+                    date: key.replace('autoBackup_', '')
+                });
+            }
+        }
+        
+        // 按日期排序（从新到旧）
+        backupKeys.sort((a, b) => b.date.localeCompare(a.date));
+        
+        // 删除超过限制的旧备份
+        if (backupKeys.length > MAX_BACKUPS) {
+            for (let i = MAX_BACKUPS; i < backupKeys.length; i++) {
+                localStorage.removeItem(backupKeys[i].key);
+            }
+        }
+    } catch (error) {
+        console.error('清理旧备份失败:', error);
+    }
+}
+
+// 尝试从备份恢复数据
+function tryRecoverFromBackup() {
+    try {
+        // 首先检查是否有主备份
+        const backupData = localStorage.getItem('backupData');
+        if (backupData) {
+            const parsedBackup = JSON.parse(backupData);
+            if (parsedBackup && parsedBackup.allTasks) {
+                console.log('从主备份恢复数据');
+                allTasks = parsedBackup.allTasks;
+                wishes = parsedBackup.wishes || [];
+                totalStars = parsedBackup.totalStars || 0;
+                recurringTasks = parsedBackup.recurringTasks || [];
+                redeemedWishes = parsedBackup.redeemedWishes || [];
+                starsHistory = parsedBackup.starsHistory || [];
+                return true;
+            }
+        }
+        
+        // 如果没有主备份，尝试从自动备份恢复
+        const backupKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('autoBackup_')) {
+                backupKeys.push(key);
+            }
+        }
+        
+        if (backupKeys.length > 0) {
+            // 按日期排序（从新到旧）
+            backupKeys.sort((a, b) => b.replace('autoBackup_', '').localeCompare(a.replace('autoBackup_', '')));
+            
+            // 尝试最新的备份
+            const latestBackup = localStorage.getItem(backupKeys[0]);
+            if (latestBackup) {
+                const parsedBackup = JSON.parse(latestBackup);
+                if (parsedBackup && parsedBackup.allTasks) {
+                    console.log('从自动备份恢复数据: ' + backupKeys[0]);
+                    allTasks = parsedBackup.allTasks;
+                    wishes = parsedBackup.wishes || [];
+                    totalStars = parsedBackup.totalStars || 0;
+                    recurringTasks = parsedBackup.recurringTasks || [];
+                    redeemedWishes = parsedBackup.redeemedWishes || [];
+                    starsHistory = parsedBackup.starsHistory || [];
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    } catch (error) {
+        console.error('恢复备份失败:', error);
+        return false;
+    }
+}
+
 // 初始化应用
 function initApp() {
     // 设置日期选择器为今天
     currentDateEl.value = currentDateString;
+    
+    // 尝试从备份恢复数据
+    if (Object.keys(allTasks).length === 0) {
+        if (tryRecoverFromBackup()) {
+            console.log('数据已从备份恢复');
+            // 重新保存所有数据
+            saveAllData();
+        }
+    }
     
     // 生成当天的周期性任务
     generateDailyRecurringTasks();
@@ -1424,6 +1669,9 @@ function initApp() {
     renderRecurringTasks();
     updateTotalStars();
     addSampleData();
+    
+    // 创建每日自动备份
+    saveAllData();
 }
 
 // 启动应用

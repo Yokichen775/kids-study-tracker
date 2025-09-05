@@ -984,6 +984,46 @@ button:hover {
     gap: 15px;
 }
 
+.data-backup-restore {
+    background-color: #f0f8ff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.backup-actions {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.backup-btn {
+    background-color: #4caf50;
+    color: white;
+}
+
+.backup-btn:hover {
+    background-color: #45a049;
+}
+
+.backup-tip {
+    font-size: 12px;
+    color: #666;
+    margin-top: 10px;
+}
+
+.section-divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 15px 0;
+}
+
+h3 {
+    font-size: 18px;
+    color: #6c5ce7;
+    margin-bottom: 10px;
+}
+
 .danger-btn {
     background-color: #ff6b6b;
 }

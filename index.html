@@ -105,6 +105,17 @@
                     <h2>系统设置</h2>
                 </div>
                 <div class="reset-container">
+                    <div class="data-backup-restore">
+                        <h3>数据备份与恢复</h3>
+                        <div class="backup-actions">
+                            <button id="export-data-btn" class="backup-btn">导出数据</button>
+                            <button id="import-data-btn" class="backup-btn">导入数据</button>
+                            <input type="file" id="import-file" accept=".json" style="display: none;">
+                        </div>
+                        <p class="backup-tip">提示：定期导出数据可防止数据丢失</p>
+                    </div>
+                    <hr class="section-divider">
+                    <h3>重置应用</h3>
                     <button id="show-reset-btn" class="danger-btn">初始化应用</button>
                     <div id="reset-confirmation" class="hidden">
                         <p>请回答以下算式验证，答案正确才能初始化：</p>
