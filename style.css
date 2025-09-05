@@ -20,16 +20,23 @@ body {
 
 /* 标题样式 */
 header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 30px;
     background-color: #fff;
     padding: 15px 20px;
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    flex-wrap: wrap;
-    gap: 10px;
+}
+
+.header-top, .header-middle, .header-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.header-bottom {
+    margin-bottom: 0;
 }
 
 /* 孩子选择器 */
@@ -38,7 +45,8 @@ header {
     justify-content: center;
     align-items: center;
     gap: 10px;
-    margin: 10px 0;
+    margin: 0;
+    flex-grow: 1;
 }
 
 #child-select {
@@ -64,6 +72,8 @@ header {
     display: flex;
     align-items: center;
     gap: 10px;
+    justify-content: center;
+    width: 100%;
 }
 
 .date-selector button {
@@ -761,12 +771,18 @@ button:hover {
     
     /* 修改头部布局 */
     header {
+        padding: 10px;
+    }
+    
+    .header-top, .header-middle, .header-bottom {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .header-top {
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        gap: 8px;
     }
     
     /* 孩子选择器移动端样式 */
@@ -823,10 +839,11 @@ button:hover {
     .star-container {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
-        width: 100%;
-        margin-top: 5px;
+        width: auto;
+        gap: 10px;
+        margin-top: 0;
     }
     
     .star-pool {

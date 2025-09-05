@@ -31,25 +31,31 @@
 <body>
     <div class="container">
         <header>
-            <h1>小星星学习打卡</h1>
-            <div class="child-selector">
-                <span>当前孩子：</span>
-                <select id="child-select"></select>
-                <button id="add-child-btn" class="small-btn">添加孩子</button>
-                <button id="edit-child-btn" class="small-btn">编辑</button>
-            </div>
-            <div class="date-selector">
-                <button id="prev-date">◀</button>
-                <input type="date" id="current-date">
-                <button id="next-date">▶</button>
-                <button id="today-btn">今天</button>
-            </div>
-            <div class="star-container">
-                <div class="star-pool">
-                    <span class="star-icon">⭐</span>
-                    <span id="total-stars">0</span>
+            <div class="header-top">
+                <h1>小星星学习打卡</h1>
+                <div class="star-container">
+                    <div class="star-pool">
+                        <span class="star-icon">⭐</span>
+                        <span id="total-stars">0</span>
+                    </div>
+                    <button id="view-stars-history-btn" class="small-btn">查看记录</button>
                 </div>
-                <button id="view-stars-history-btn" class="small-btn">查看记录</button>
+            </div>
+            <div class="header-middle">
+                <div class="child-selector">
+                    <span>当前孩子：</span>
+                    <select id="child-select"></select>
+                    <button id="add-child-btn" class="small-btn">添加孩子</button>
+                    <button id="edit-child-btn" class="small-btn">编辑</button>
+                </div>
+            </div>
+            <div class="header-bottom">
+                <div class="date-selector">
+                    <button id="prev-date">◀</button>
+                    <input type="date" id="current-date">
+                    <button id="next-date">▶</button>
+                    <button id="today-btn">今天</button>
+                </div>
             </div>
         </header>
 
