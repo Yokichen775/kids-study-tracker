@@ -32,6 +32,12 @@
     <div class="container">
         <header>
             <h1>小星星学习打卡</h1>
+            <div class="child-selector">
+                <span>当前孩子：</span>
+                <select id="child-select"></select>
+                <button id="add-child-btn" class="small-btn">添加孩子</button>
+                <button id="edit-child-btn" class="small-btn">编辑</button>
+            </div>
             <div class="date-selector">
                 <button id="prev-date">◀</button>
                 <input type="date" id="current-date">
@@ -268,6 +274,34 @@
             <h2>星星修改记录</h2>
             <div id="stars-history-list" class="archive-list">
                 <!-- 星星修改记录列表将通过 JavaScript 动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 添加孩子模态框 -->
+    <div id="add-child-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>添加孩子</h2>
+            <div class="edit-form">
+                <input type="text" id="new-child-name" placeholder="输入孩子名称">
+                <button id="confirm-add-child-btn">添加</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 编辑孩子模态框 -->
+    <div id="edit-child-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>编辑孩子</h2>
+            <div class="edit-form">
+                <input type="text" id="edit-child-name" placeholder="孩子名称">
+                <input type="hidden" id="edit-child-id">
+                <div class="edit-buttons">
+                    <button id="update-child-btn">更新</button>
+                    <button id="delete-child-btn" class="delete-btn">删除</button>
+                </div>
             </div>
         </div>
     </div>

@@ -1,10 +1,63 @@
-// 初始化数据
-let allTasks = JSON.parse(localStorage.getItem('allTasks')) || {}; // 按日期存储任务
-let wishes = JSON.parse(localStorage.getItem('wishes')) || [];
-let recurringTasks = JSON.parse(localStorage.getItem('recurringTasks')) || [];
-let redeemedWishes = JSON.parse(localStorage.getItem('redeemedWishes')) || [];
-let starsHistory = JSON.parse(localStorage.getItem('starsHistory')) || [];
-let totalStars = parseInt(localStorage.getItem('totalStars')) || 0;
+// 多孩子数据结构
+let appData = JSON.parse(localStorage.getItem('appData')) || {
+    currentChild: null,
+    children: []
+};
+
+// 如果没有孩子数据，则迁移旧数据或创建默认孩子
+if (appData.children.length === 0) {
+    // 检查是否有旧版数据需要迁移
+    const oldAllTasks = JSON.parse(localStorage.getItem('allTasks'));
+    const oldWishes = JSON.parse(localStorage.getItem('wishes'));
+    const oldRecurringTasks = JSON.parse(localStorage.getItem('recurringTasks'));
+    const oldRedeemedWishes = JSON.parse(localStorage.getItem('redeemedWishes'));
+    const oldStarsHistory = JSON.parse(localStorage.getItem('starsHistory'));
+    const oldTotalStars = parseInt(localStorage.getItem('totalStars')) || 0;
+    
+    // 如果有旧数据，则迁移到第一个孩子
+    if (oldAllTasks || oldWishes || oldRecurringTasks) {
+        appData.children.push({
+            id: "child_" + Date.now(),
+            name: "默认",
+            allTasks: oldAllTasks || {},
+            wishes: oldWishes || [],
+            totalStars: oldTotalStars,
+            recurringTasks: oldRecurringTasks || [],
+            redeemedWishes: oldRedeemedWishes || [],
+            starsHistory: oldStarsHistory || []
+        });
+    } else {
+        // 创建默认孩子
+        appData.children.push({
+            id: "child_" + Date.now(),
+            name: "默认",
+            allTasks: {},
+            wishes: [],
+            totalStars: 0,
+            recurringTasks: [],
+            redeemedWishes: [],
+            starsHistory: []
+        });
+    }
+    
+    // 设置当前孩子为第一个孩子
+    appData.currentChild = appData.children[0].id;
+    
+    // 保存到localStorage
+    localStorage.setItem('appData', JSON.stringify(appData));
+}
+
+// 获取当前孩子数据的快捷引用
+let currentChildData = appData.children.find(child => child.id === appData.currentChild) || appData.children[0];
+appData.currentChild = currentChildData.id; // 确保currentChild有效
+
+// 为了兼容现有代码，创建引用
+let allTasks = currentChildData.allTasks;
+let wishes = currentChildData.wishes;
+let recurringTasks = currentChildData.recurringTasks;
+let redeemedWishes = currentChildData.redeemedWishes;
+let starsHistory = currentChildData.starsHistory;
+let totalStars = currentChildData.totalStars;
 
 // 当前选择的日期（默认今天）
 let currentDate = new Date();
@@ -18,6 +71,9 @@ let calendarYear = currentDate.getFullYear();
 const taskListEl = document.getElementById('task-list');
 const recurringTaskListEl = document.getElementById('recurring-task-list');
 const wishListEl = document.getElementById('wish-list');
+const childSelectEl = document.getElementById('child-select');
+const addChildBtnEl = document.getElementById('add-child-btn');
+const editChildBtnEl = document.getElementById('edit-child-btn');
 const totalStarsEl = document.getElementById('total-stars');
 const newTaskNameEl = document.getElementById('new-task-name');
 const newTaskStarsEl = document.getElementById('new-task-stars');
@@ -574,6 +630,8 @@ function closeModals() {
     editRecurringTaskModalEl.style.display = 'none';
     wishArchiveModalEl.style.display = 'none';
     starsHistoryModalEl.style.display = 'none';
+    addChildModalEl.style.display = 'none';
+    editChildModalEl.style.display = 'none';
     resetConfirmationEl.classList.add('hidden');
 }
 
@@ -881,13 +939,55 @@ function verifyAndReset() {
     const userAnswer = parseInt(mathAnswerEl.value);
     
     if (userAnswer === correctResult) {
-        // 清除所有数据
-        allTasks = {};
-        wishes = [];
-        recurringTasks = [];
-        redeemedWishes = [];
-        starsHistory = [];
-        totalStars = 0;
+        // 清除当前孩子的数据还是所有孩子的数据
+        const resetOption = confirm('是否要清除所有孩子的数据？\n点击"确定"清除所有孩子数据\n点击"取消"只清除当前孩子数据');
+        
+        if (resetOption) {
+            // 清除所有孩子数据
+            appData = {
+                currentChild: "child_" + Date.now(),
+                children: [{
+                    id: "child_" + Date.now(),
+                    name: "默认",
+                    allTasks: {},
+                    wishes: [],
+                    totalStars: 0,
+                    recurringTasks: [],
+                    redeemedWishes: [],
+                    starsHistory: []
+                }]
+            };
+            
+            // 获取当前孩子数据
+            currentChildData = appData.children[0];
+            
+            // 更新引用
+            allTasks = currentChildData.allTasks;
+            wishes = currentChildData.wishes;
+            totalStars = currentChildData.totalStars;
+            recurringTasks = currentChildData.recurringTasks;
+            redeemedWishes = currentChildData.redeemedWishes;
+            starsHistory = currentChildData.starsHistory;
+            
+            // 初始化孩子选择器
+            initChildSelector();
+        } else {
+            // 只清除当前孩子数据
+            currentChildData.allTasks = {};
+            currentChildData.wishes = [];
+            currentChildData.totalStars = 0;
+            currentChildData.recurringTasks = [];
+            currentChildData.redeemedWishes = [];
+            currentChildData.starsHistory = [];
+            
+            // 更新引用
+            allTasks = {};
+            wishes = [];
+            totalStars = 0;
+            recurringTasks = [];
+            redeemedWishes = [];
+            starsHistory = [];
+        }
         
         // 更新本地存储
         localStorage.removeItem('allTasks');
@@ -908,6 +1008,9 @@ function verifyAndReset() {
                 localStorage.removeItem(key);
             }
         }
+        
+        // 保存新的数据结构
+        localStorage.setItem('appData', JSON.stringify(appData));
         
         // 重新渲染界面
         renderTasks();
@@ -1417,6 +1520,71 @@ function showStarsHistory() {
 // 查看星星修改记录
 viewStarsHistoryBtnEl.addEventListener('click', showStarsHistory);
 
+// 孩子管理相关事件
+childSelectEl.addEventListener('change', function() {
+    switchChild(this.value);
+});
+
+addChildBtnEl.addEventListener('click', showAddChildModal);
+editChildBtnEl.addEventListener('click', showEditChildModal);
+
+// 添加孩子模态框
+const addChildModalEl = document.getElementById('add-child-modal');
+const newChildNameEl = document.getElementById('new-child-name');
+const confirmAddChildBtnEl = document.getElementById('confirm-add-child-btn');
+
+function showAddChildModal() {
+    newChildNameEl.value = '';
+    addChildModalEl.style.display = 'block';
+}
+
+confirmAddChildBtnEl.addEventListener('click', function() {
+    const name = newChildNameEl.value.trim();
+    if (name) {
+        const newChild = addChild(name);
+        switchChild(newChild.id);
+        addChildModalEl.style.display = 'none';
+    } else {
+        alert('请输入孩子名称');
+    }
+});
+
+// 编辑孩子模态框
+const editChildModalEl = document.getElementById('edit-child-modal');
+const editChildNameEl = document.getElementById('edit-child-name');
+const editChildIdEl = document.getElementById('edit-child-id');
+const updateChildBtnEl = document.getElementById('update-child-btn');
+const deleteChildBtnEl = document.getElementById('delete-child-btn');
+
+function showEditChildModal() {
+    const currentChild = appData.children.find(child => child.id === appData.currentChild);
+    if (currentChild) {
+        editChildNameEl.value = currentChild.name;
+        editChildIdEl.value = currentChild.id;
+        editChildModalEl.style.display = 'block';
+    }
+}
+
+updateChildBtnEl.addEventListener('click', function() {
+    const name = editChildNameEl.value.trim();
+    const id = editChildIdEl.value;
+    if (name) {
+        updateChild(id, name);
+        editChildModalEl.style.display = 'none';
+    } else {
+        alert('请输入孩子名称');
+    }
+});
+
+deleteChildBtnEl.addEventListener('click', function() {
+    const id = editChildIdEl.value;
+    if (confirm('确定要删除这个孩子的所有数据吗？此操作不可撤销！')) {
+        if (deleteChild(id)) {
+            editChildModalEl.style.display = 'none';
+        }
+    }
+});
+
 // 数据备份与恢复相关事件
 const exportDataBtnEl = document.getElementById('export-data-btn');
 const importDataBtnEl = document.getElementById('import-data-btn');
@@ -1439,14 +1607,9 @@ cancelResetBtnEl.addEventListener('click', function() {
 function exportData() {
     // 收集所有需要导出的数据
     const exportData = {
-        allTasks: allTasks,
-        wishes: wishes,
-        totalStars: totalStars,
-        recurringTasks: recurringTasks,
-        redeemedWishes: redeemedWishes,
-        starsHistory: starsHistory,
+        appData: appData,  // 包含所有孩子的数据
         timestamp: new Date().getTime(),
-        version: '1.0'
+        version: '3.0'     // 更新版本号表示支持多孩子
     };
     
     // 将数据转换为JSON字符串
@@ -1477,24 +1640,62 @@ function importData(event) {
         try {
             const importedData = JSON.parse(e.target.result);
             
-            // 验证数据格式
-            if (!importedData.version || !importedData.allTasks || !importedData.wishes) {
-                alert('导入的数据格式不正确');
-                return;
-            }
-            
             // 确认导入
             if (confirm('确定要导入数据吗？这将覆盖当前所有数据。')) {
-                // 导入数据
-                allTasks = importedData.allTasks || {};
-                wishes = importedData.wishes || [];
-                totalStars = importedData.totalStars || 0;
-                recurringTasks = importedData.recurringTasks || [];
-                redeemedWishes = importedData.redeemedWishes || [];
-                starsHistory = importedData.starsHistory || [];
+                // 根据数据版本处理不同格式
+                if (importedData.version === '3.0' && importedData.appData) {
+                    // 新版本格式 - 多孩子支持
+                    appData = importedData.appData;
+                    
+                    // 获取当前孩子数据
+                    currentChildData = appData.children.find(child => child.id === appData.currentChild) || appData.children[0];
+                    appData.currentChild = currentChildData.id;
+                    
+                    // 更新引用
+                    allTasks = currentChildData.allTasks;
+                    wishes = currentChildData.wishes;
+                    totalStars = currentChildData.totalStars;
+                    recurringTasks = currentChildData.recurringTasks;
+                    redeemedWishes = currentChildData.redeemedWishes;
+                    starsHistory = currentChildData.starsHistory;
+                    
+                } else if (importedData.version && (importedData.allTasks || importedData.wishes)) {
+                    // 旧版本格式 - 单孩子
+                    // 创建一个新的孩子数据结构
+                    appData = {
+                        currentChild: "child_" + Date.now(),
+                        children: [{
+                            id: "child_" + Date.now(),
+                            name: "导入数据",
+                            allTasks: importedData.allTasks || {},
+                            wishes: importedData.wishes || [],
+                            totalStars: importedData.totalStars || 0,
+                            recurringTasks: importedData.recurringTasks || [],
+                            redeemedWishes: importedData.redeemedWishes || [],
+                            starsHistory: importedData.starsHistory || []
+                        }]
+                    };
+                    
+                    // 获取当前孩子数据
+                    currentChildData = appData.children[0];
+                    
+                    // 更新引用
+                    allTasks = currentChildData.allTasks;
+                    wishes = currentChildData.wishes;
+                    totalStars = currentChildData.totalStars;
+                    recurringTasks = currentChildData.recurringTasks;
+                    redeemedWishes = currentChildData.redeemedWishes;
+                    starsHistory = currentChildData.starsHistory;
+                } else {
+                    alert('导入的数据格式不正确');
+                    return;
+                }
                 
                 // 保存到localStorage
                 saveAllData();
+                
+                // 初始化孩子选择器
+                initChildSelector();
                 
                 // 重新渲染页面
                 renderTasks();
@@ -1518,7 +1719,18 @@ function importData(event) {
 // 保存所有数据到localStorage并创建备份
 function saveAllData() {
     try {
-        // 保存所有数据
+        // 更新当前孩子的数据
+        currentChildData.allTasks = allTasks;
+        currentChildData.wishes = wishes;
+        currentChildData.totalStars = totalStars;
+        currentChildData.recurringTasks = recurringTasks;
+        currentChildData.redeemedWishes = redeemedWishes;
+        currentChildData.starsHistory = starsHistory;
+        
+        // 保存整个应用数据
+        localStorage.setItem('appData', JSON.stringify(appData));
+        
+        // 为了兼容旧版本，也保存当前孩子的数据到原来的位置
         localStorage.setItem('allTasks', JSON.stringify(allTasks));
         localStorage.setItem('wishes', JSON.stringify(wishes));
         localStorage.setItem('totalStars', totalStars);
@@ -1528,14 +1740,9 @@ function saveAllData() {
         
         // 创建备份数据
         const backupData = {
-            allTasks: allTasks,
-            wishes: wishes,
-            totalStars: totalStars,
-            recurringTasks: recurringTasks,
-            redeemedWishes: redeemedWishes,
-            starsHistory: starsHistory,
+            appData: appData,
             timestamp: new Date().getTime(),
-            version: '1.0'
+            version: '2.0'
         };
         
         // 保存完整备份
@@ -1648,10 +1855,132 @@ function tryRecoverFromBackup() {
     }
 }
 
+// 初始化孩子选择器
+function initChildSelector() {
+    // 清空选择器
+    childSelectEl.innerHTML = '';
+    
+    // 添加所有孩子选项
+    appData.children.forEach(child => {
+        const option = document.createElement('option');
+        option.value = child.id;
+        option.textContent = child.name;
+        childSelectEl.appendChild(option);
+    });
+    
+    // 设置当前选中的孩子
+    childSelectEl.value = appData.currentChild;
+}
+
+// 切换当前孩子
+function switchChild(childId) {
+    // 保存当前孩子的数据
+    currentChildData.allTasks = allTasks;
+    currentChildData.wishes = wishes;
+    currentChildData.totalStars = totalStars;
+    currentChildData.recurringTasks = recurringTasks;
+    currentChildData.redeemedWishes = redeemedWishes;
+    currentChildData.starsHistory = starsHistory;
+    
+    // 更新当前孩子ID
+    appData.currentChild = childId;
+    
+    // 获取新的当前孩子数据
+    currentChildData = appData.children.find(child => child.id === childId);
+    
+    // 更新引用
+    allTasks = currentChildData.allTasks;
+    wishes = currentChildData.wishes;
+    totalStars = currentChildData.totalStars;
+    recurringTasks = currentChildData.recurringTasks;
+    redeemedWishes = currentChildData.redeemedWishes;
+    starsHistory = currentChildData.starsHistory;
+    
+    // 保存到localStorage
+    saveAllData();
+    
+    // 重新渲染界面
+    renderTasks();
+    renderWishes();
+    renderRecurringTasks();
+    updateTotalStars();
+}
+
+// 添加新孩子
+function addChild(name) {
+    // 创建新孩子数据
+    const newChild = {
+        id: "child_" + Date.now(),
+        name: name,
+        allTasks: {},
+        wishes: [],
+        totalStars: 0,
+        recurringTasks: [],
+        redeemedWishes: [],
+        starsHistory: []
+    };
+    
+    // 添加到孩子列表
+    appData.children.push(newChild);
+    
+    // 保存到localStorage
+    saveAllData();
+    
+    // 更新孩子选择器
+    initChildSelector();
+    
+    return newChild;
+}
+
+// 更新孩子信息
+function updateChild(childId, name) {
+    const child = appData.children.find(child => child.id === childId);
+    if (child) {
+        child.name = name;
+        saveAllData();
+        initChildSelector();
+        return true;
+    }
+    return false;
+}
+
+// 删除孩子
+function deleteChild(childId) {
+    // 不允许删除最后一个孩子
+    if (appData.children.length <= 1) {
+        alert('至少需要保留一个孩子记录！');
+        return false;
+    }
+    
+    // 找到孩子的索引
+    const index = appData.children.findIndex(child => child.id === childId);
+    if (index === -1) return false;
+    
+    // 删除孩子
+    appData.children.splice(index, 1);
+    
+    // 如果删除的是当前孩子，则切换到第一个孩子
+    if (childId === appData.currentChild) {
+        appData.currentChild = appData.children[0].id;
+        switchChild(appData.currentChild);
+    }
+    
+    // 保存到localStorage
+    saveAllData();
+    
+    // 更新孩子选择器
+    initChildSelector();
+    
+    return true;
+}
+
 // 初始化应用
 function initApp() {
     // 设置日期选择器为今天
     currentDateEl.value = currentDateString;
+    
+    // 初始化孩子选择器
+    initChildSelector();
     
     // 尝试从备份恢复数据
     if (Object.keys(allTasks).length === 0) {

@@ -32,6 +32,33 @@ header {
     gap: 10px;
 }
 
+/* 孩子选择器 */
+.child-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+#child-select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    min-width: 120px;
+}
+
+#add-child-btn, #edit-child-btn {
+    padding: 5px 10px;
+    background-color: #6c5ce7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
 /* 日期选择器 */
 .date-selector {
     display: flex;
@@ -740,6 +767,26 @@ button:hover {
         align-items: center;
         padding: 10px;
         gap: 8px;
+    }
+    
+    /* 孩子选择器移动端样式 */
+    .child-selector {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin: 5px 0;
+    }
+    
+    #child-select {
+        flex-grow: 1;
+        min-width: 100px;
+        margin-right: 5px;
+        font-size: 14px;
+    }
+    
+    #add-child-btn, #edit-child-btn {
+        padding: 4px 8px;
+        font-size: 12px;
     }
     
     /* 日期选择器保持水平 */
