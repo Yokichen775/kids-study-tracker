@@ -1678,15 +1678,40 @@ function initApp() {
 // 启动应用
 initApp();
 
-// 注册Service Worker
+// 注册Service Worker并强制更新
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
+        // 注册service worker
         navigator.serviceWorker.register('./service-worker.js')
             .then(registration => {
                 console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                
+                // 检查更新
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed') {
+                            if (navigator.serviceWorker.controller) {
+                                console.log('新版本可用，正在更新...');
+                                // 强制更新
+                                newWorker.postMessage({ action: 'skipWaiting' });
+                            }
+                        }
+                    });
+                });
             })
             .catch(err => {
                 console.log('ServiceWorker registration failed: ', err);
             });
+            
+        // 当service worker更新完成后，刷新页面
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+                refreshing = true;
+                console.log('正在刷新页面...');
+                window.location.reload();
+            }
+        });
     });
 }
