@@ -311,6 +311,35 @@
             </div>
         </div>
     </div>
+    
+    <!-- 攒星星模态框 -->
+    <div id="save-stars-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>攒星星</h2>
+            <div class="save-stars-form">
+                <p id="save-stars-wish-name">星愿名称</p>
+                <div class="save-stars-info">
+                    <p>星愿所需总星星数：<span id="save-stars-wish-total">0</span></p>
+                    <p>已攒入星星数：<span id="save-stars-wish-saved">0</span></p>
+                    <p>当前星星池：<span id="save-stars-current-total">0</span></p>
+                </div>
+                <div class="save-stars-input">
+                    <label for="save-stars-amount">攒入星星数量：</label>
+                    <div class="quantity-selector">
+                        <button id="decrease-save-amount">-</button>
+                        <input type="number" id="save-stars-amount" value="1" min="1">
+                        <button id="increase-save-amount">+</button>
+                    </div>
+                </div>
+                <input type="hidden" id="save-stars-wish-id">
+                <div class="save-stars-actions">
+                    <button id="confirm-save-stars-btn">确认攒入</button>
+                    <button id="cancel-save-stars-btn">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

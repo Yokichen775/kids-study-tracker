@@ -242,12 +242,31 @@ function renderWishes() {
         const wishItem = document.createElement('div');
         wishItem.classList.add('wish-item');
         
-        const canRedeem = totalStars >= wish.stars;
+        // 计算是否可以兑换（考虑已攒入的星星）
+        const savedStars = wish.savedStars || 0;
+        const remainingStars = wish.stars - savedStars;
+        const canRedeem = (totalStars + savedStars) >= wish.stars;
+        
+        // 显示进度条，如果有攒入星星
+        let progressBar = '';
+        if (savedStars > 0) {
+            const progressPercent = Math.min(100, (savedStars / wish.stars) * 100);
+            progressBar = `
+                <div class="wish-progress">
+                    <div class="progress-bar" style="width: ${progressPercent}%"></div>
+                    <span class="progress-text">已攒: ${savedStars}/${wish.stars}</span>
+                </div>
+            `;
+        }
         
         wishItem.innerHTML = `
-            <span class="wish-name">${wish.name}</span>
+            <div class="wish-info">
+                <span class="wish-name">${wish.name}</span>
+                ${progressBar}
+            </div>
             <span class="wish-stars">⭐ ${wish.stars}</span>
             <div class="wish-actions">
+                <button class="save-stars-btn" data-index="${index}">攒星星</button>
                 <button class="edit-wish-btn" data-index="${index}">编辑</button>
                 <button class="redeem-btn" ${canRedeem ? '' : 'disabled'} data-index="${index}">
                     ${canRedeem ? '兑换' : '星星不足'}
@@ -270,6 +289,11 @@ function renderWishes() {
         btn.addEventListener('click', showEditWishModal);
     });
     
+    // 添加攒星星的事件监听
+    document.querySelectorAll('.save-stars-btn').forEach(btn => {
+        btn.addEventListener('click', showSaveStarsModal);
+    });
+    
     // 保存到本地存储
     localStorage.setItem('wishes', JSON.stringify(wishes));
 }
@@ -278,7 +302,14 @@ function renderWishes() {
 function updateWishRedeemStatus() {
     document.querySelectorAll('.redeem-btn').forEach((btn, index) => {
         const wish = wishes[index];
-        if (wish && totalStars >= wish.stars) {
+        if (!wish) return;
+        
+        // 计算是否可以兑换（考虑已攒入的星星）
+        const savedStars = wish.savedStars || 0;
+        const remainingStars = wish.stars - savedStars;
+        const canRedeem = (totalStars + savedStars) >= wish.stars;
+        
+        if (canRedeem) {
             btn.disabled = false;
             btn.textContent = '兑换';
         } else {
@@ -286,6 +317,75 @@ function updateWishRedeemStatus() {
             btn.textContent = '星星不足';
         }
     });
+}
+
+// 显示攒星星模态框
+function showSaveStarsModal(event) {
+    const index = event.target.dataset.index;
+    const wish = wishes[index];
+    
+    document.getElementById('save-stars-wish-name').textContent = wish.name;
+    document.getElementById('save-stars-wish-total').textContent = wish.stars;
+    document.getElementById('save-stars-wish-saved').textContent = wish.savedStars || 0;
+    document.getElementById('save-stars-current-total').textContent = totalStars;
+    document.getElementById('save-stars-wish-id').value = index;
+    
+    // 默认攒入数量为1
+    const amountInput = document.getElementById('save-stars-amount');
+    amountInput.value = 1;
+    amountInput.max = totalStars;
+    
+    document.getElementById('save-stars-modal').style.display = 'block';
+}
+
+// 更新攒星星数量
+function updateSaveStarsAmount() {
+    const amount = parseInt(document.getElementById('save-stars-amount').value) || 1;
+    const maxAmount = parseInt(document.getElementById('save-stars-current-total').textContent);
+    
+    // 确保不超过当前星星总数
+    if (amount > maxAmount) {
+        document.getElementById('save-stars-amount').value = maxAmount;
+    }
+}
+
+// 确认攒入星星
+function confirmSaveStars() {
+    const index = document.getElementById('save-stars-wish-id').value;
+    const wish = wishes[index];
+    const amount = parseInt(document.getElementById('save-stars-amount').value) || 1;
+    
+    if (amount > totalStars) {
+        showNotification('星星不足，无法攒入！', 'error');
+        return;
+    }
+    
+    // 更新已攒入的星星数
+    wish.savedStars = (wish.savedStars || 0) + amount;
+    
+    // 从总星星池中扣除
+    totalStars -= amount;
+    updateTotalStars();
+    
+    // 添加星星修改记录
+    const record = {
+        id: Date.now(),
+        type: 'wish_save',
+        stars: -amount,
+        reason: `为星愿攒星星：${wish.name}`,
+        date: formatDate(new Date()),
+        time: new Date().toLocaleTimeString()
+    };
+    
+    starsHistory.push(record);
+    localStorage.setItem('starsHistory', JSON.stringify(starsHistory));
+    
+    // 保存星愿数据
+    localStorage.setItem('wishes', JSON.stringify(wishes));
+    
+    // 关闭模态框（closeModals函数中会重新渲染星愿列表）
+    closeModals();
+    showNotification(`成功为 ${wish.name} 攒入 ${amount} 颗星星！`);
 }
 
 // 添加新任务
@@ -386,7 +486,8 @@ function addWish() {
         const newWish = {
             id: Date.now(),
             name,
-            stars
+            stars,
+            savedStars: 0  // 初始攒入的星星为0
         };
         
         wishes.push(newWish);
@@ -408,15 +509,21 @@ function redeemWish(event) {
     const index = event.target.dataset.index;
     const wish = wishes[index];
     
+    // 获取已攒入的星星数
+    const savedStars = wish.savedStars || 0;
+    const remainingStars = wish.stars - savedStars;
+    
     document.getElementById('redeem-wish-name').textContent = wish.name;
-    document.getElementById('redeem-wish-stars').textContent = wish.stars;
+    document.getElementById('redeem-wish-stars').textContent = wish.stars; // 显示总需求星星数
     document.getElementById('redeem-current-stars').textContent = totalStars;
     document.getElementById('redeem-wish-id').value = index;
     
     // 默认兑换数量为1
     const quantityInput = document.getElementById('redeem-quantity-input');
     quantityInput.value = 1;
-    quantityInput.max = Math.floor(totalStars / wish.stars);
+    // 计算最大可兑换数量，考虑已攒入的星星
+    const maxQuantity = Math.floor((totalStars + savedStars) / wish.stars);
+    quantityInput.max = maxQuantity > 0 ? maxQuantity : 1;
     
     // 更新总星星数
     updateRedeemTotal();
@@ -429,13 +536,21 @@ function updateRedeemTotal() {
     const index = document.getElementById('redeem-wish-id').value;
     const wish = wishes[index];
     const quantity = parseInt(document.getElementById('redeem-quantity-input').value) || 1;
-    const totalRequired = wish.stars * quantity;
     
-    document.getElementById('redeem-total-stars').textContent = totalRequired;
+    // 获取已攒入的星星数
+    const savedStars = wish.savedStars || 0;
     
-    // 更新确认按钮状态
+    // 计算总需求星星数和实际需要从星星池扣除的数量
+    const totalStarsRequired = wish.stars * quantity; // 总共需要的星星数
+    const savedStarsUsed = Math.min(savedStars, totalStarsRequired); // 可以使用的已攒入星星数
+    const needFromPool = totalStarsRequired - savedStarsUsed; // 需要从星星池扣除的数量
+    
+    // 显示总需求星星数
+    document.getElementById('redeem-total-stars').textContent = totalStarsRequired;
+    
+    // 更新确认按钮状态 - 检查星星池中是否有足够的星星
     const confirmBtn = document.getElementById('confirm-redeem-btn');
-    if (totalRequired <= totalStars) {
+    if (needFromPool <= totalStars) {
         confirmBtn.disabled = false;
     } else {
         confirmBtn.disabled = true;
@@ -447,10 +562,16 @@ function confirmRedeemWish() {
     const index = document.getElementById('redeem-wish-id').value;
     const wish = wishes[index];
     const quantity = parseInt(document.getElementById('redeem-quantity-input').value) || 1;
-    const totalRequired = wish.stars * quantity;
     
-    if (totalStars >= totalRequired) {
-        totalStars -= totalRequired;
+    // 计算总需求星星数和实际需要从星星池扣除的数量
+    const savedStars = wish.savedStars || 0;
+    const totalStarsRequired = wish.stars * quantity; // 总共需要的星星数
+    const savedStarsUsed = Math.min(savedStars, totalStarsRequired); // 可以使用的已攒入星星数
+    const needFromPool = totalStarsRequired - savedStarsUsed; // 需要从星星池扣除的数量
+    
+    if (totalStars >= needFromPool) {
+        // 从星星池中扣除需要的星星（已攒入的部分不再扣除）
+        totalStars -= needFromPool;
         updateTotalStars();
         
         // 添加到已兑换列表
@@ -459,19 +580,26 @@ function confirmRedeemWish() {
             name: wish.name,
             stars: wish.stars,
             quantity: quantity,
-            totalStars: totalRequired,
+            totalStars: totalStarsRequired,
+            savedStars: savedStarsUsed,
+            actualCost: needFromPool,
             date: formatDate(new Date())
         };
         
         redeemedWishes.push(redeemedWish);
         localStorage.setItem('redeemedWishes', JSON.stringify(redeemedWishes));
         
+        // 重置已攒入的星星
+        wish.savedStars = 0;
+        // 保存到本地存储以更新进度条
+        localStorage.setItem('wishes', JSON.stringify(wishes));
+        
         // 添加星星修改记录
         const record = {
             id: Date.now(),
             type: 'wish_redeem',
-            stars: -totalRequired,
-            reason: `兑换星愿：${wish.name} x ${quantity}`,
+            stars: -needFromPool,
+            reason: `兑换星愿：${wish.name} x ${quantity}（使用已攒入${savedStarsUsed}颗星星）`,
             date: formatDate(new Date()),
             time: new Date().toLocaleTimeString()
         };
@@ -479,10 +607,11 @@ function confirmRedeemWish() {
         starsHistory.push(record);
         localStorage.setItem('starsHistory', JSON.stringify(starsHistory));
         
+        // 关闭模态框（closeModals函数中会重新渲染星愿列表）
         closeModals();
         
         // 显示成功提示
-        showNotification(`恭喜兑换成功！兑换了 ${quantity} 个 ${wish.name}，消耗了 ${totalRequired} 颗星星！`);
+        showNotification(`恭喜兑换成功！兑换了 ${quantity} 个 ${wish.name}，使用已攒入${savedStarsUsed}颗星星，从星星池消耗了 ${needFromPool} 颗星星！`);
     } else {
         showNotification('星星不足，无法兑换！', 'error');
     }
@@ -598,13 +727,42 @@ function updateWish() {
     const stars = parseInt(document.getElementById('edit-wish-stars').value);
     
     if (name && stars && stars > 0) {
-        wishes[index].name = name;
-        wishes[index].stars = stars;
+        const wish = wishes[index];
+        const oldStars = wish.stars;
+        const savedStars = wish.savedStars || 0;
+        
+        wish.name = name;
+        wish.stars = stars;
+        
+        // 确保已攒入的星星数不超过新的星愿星星数
+        if (savedStars > stars) {
+            const extraStars = savedStars - stars;
+            wish.savedStars = stars;
+            
+            // 将多余的星星返还给星星池
+            totalStars += extraStars;
+            updateTotalStars();
+            
+            // 添加星星修改记录
+            const record = {
+                id: Date.now(),
+                type: 'wish_update',
+                stars: extraStars,
+                reason: `星愿更新返还星星：${wish.name}`,
+                date: formatDate(new Date()),
+                time: new Date().toLocaleTimeString()
+            };
+            
+            starsHistory.push(record);
+            localStorage.setItem('starsHistory', JSON.stringify(starsHistory));
+            
+            showNotification(`星愿更新成功！已返还 ${extraStars} 颗多余的星星。`);
+        } else {
+            showNotification('星愿更新成功！');
+        }
         
         renderWishes();
         closeModals();
-        
-        showNotification('星愿更新成功！');
     } else {
         showNotification('请输入有效的星愿名称和所需星星数！', 'error');
     }
@@ -613,11 +771,35 @@ function updateWish() {
 // 删除星愿
 function deleteWish() {
     const index = parseInt(document.getElementById('edit-wish-id').value);
+    const wish = wishes[index];
+    const savedStars = wish.savedStars || 0;
+    
+    // 如果有已攒入的星星，返还给星星池
+    if (savedStars > 0) {
+        totalStars += savedStars;
+        updateTotalStars();
+        
+        // 添加星星修改记录
+        const record = {
+            id: Date.now(),
+            type: 'wish_delete',
+            stars: savedStars,
+            reason: `删除星愿返还星星：${wish.name}`,
+            date: formatDate(new Date()),
+            time: new Date().toLocaleTimeString()
+        };
+        
+        starsHistory.push(record);
+        localStorage.setItem('starsHistory', JSON.stringify(starsHistory));
+        
+        showNotification(`星愿已删除！已返还 ${savedStars} 颗星星。`);
+    } else {
+        showNotification('星愿已删除！');
+    }
+    
     wishes.splice(index, 1);
     renderWishes();
     closeModals();
-    
-    showNotification('星愿已删除！');
 }
 
 // 关闭所有模态框
@@ -632,7 +814,11 @@ function closeModals() {
     starsHistoryModalEl.style.display = 'none';
     addChildModalEl.style.display = 'none';
     editChildModalEl.style.display = 'none';
+    document.getElementById('save-stars-modal').style.display = 'none';
     resetConfirmationEl.classList.add('hidden');
+    
+    // 每次关闭模态框后重新渲染星愿列表，确保进度条更新
+    renderWishes();
 }
 
 // 显示日历模态框
@@ -1339,6 +1525,28 @@ viewCalendarBtnEl.addEventListener('click', showCalendarModal);
 prevMonthBtnEl.addEventListener('click', goToPrevMonth);
 nextMonthBtnEl.addEventListener('click', goToNextMonth);
 
+// 攒星星相关事件监听
+document.getElementById('decrease-save-amount').addEventListener('click', function() {
+    const input = document.getElementById('save-stars-amount');
+    if (parseInt(input.value) > 1) {
+        input.value = parseInt(input.value) - 1;
+        updateSaveStarsAmount();
+    }
+});
+
+document.getElementById('increase-save-amount').addEventListener('click', function() {
+    const input = document.getElementById('save-stars-amount');
+    const max = parseInt(input.max);
+    if (parseInt(input.value) < max) {
+        input.value = parseInt(input.value) + 1;
+        updateSaveStarsAmount();
+    }
+});
+
+document.getElementById('save-stars-amount').addEventListener('change', updateSaveStarsAmount);
+document.getElementById('confirm-save-stars-btn').addEventListener('click', confirmSaveStars);
+document.getElementById('cancel-save-stars-btn').addEventListener('click', closeModals);
+
 // 选项卡切换事件
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1377,6 +1585,10 @@ window.addEventListener('click', function(event) {
     if (event.target === starsHistoryModalEl) {
         starsHistoryModalEl.style.display = 'none';
     }
+    const saveStarsModal = document.getElementById('save-stars-modal');
+    if (event.target === saveStarsModal) {
+        saveStarsModal.style.display = 'none';
+    }
 });
 
 // 编辑任务按钮的事件监听
@@ -1405,12 +1617,19 @@ function showWishArchive() {
             const wishItem = document.createElement('div');
             wishItem.classList.add('wish-item', 'redeemed-wish');
             
+            // 显示已攒入星星信息（如果有）
+            const savedStarsInfo = wish.savedStars ? 
+                `<span class="wish-saved-stars">（使用已攒入${wish.savedStars}颗星星）</span>` : '';
+            
             wishItem.innerHTML = `
                 <div class="wish-info">
-                    <span class="wish-name">${wish.name} x ${wish.quantity}</span>
-                    <span class="wish-date">${formatDateChinese(wish.date)}</span>
+                    <span class="wish-name">${wish.name} × ${wish.quantity}</span>
+                    <div class="wish-details">
+                        <span class="wish-date">${formatDateChinese(wish.date)}</span>
+                        ${savedStarsInfo}
+                    </div>
                 </div>
-                <span class="wish-stars">⭐ ${wish.totalStars}</span>
+                <span class="wish-stars">⭐ ${wish.actualCost || wish.totalStars}</span>
             `;
             
             wishArchiveListEl.appendChild(wishItem);
