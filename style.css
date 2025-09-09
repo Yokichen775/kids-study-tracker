@@ -1284,6 +1284,9 @@ section {
         font-size: 12px;
     }
 
+    .task-item {
+        align-items: flex-start; /* 确保任务项的子元素靠左对齐 */
+    }
     .task-name {
         text-align: left; /* 确保任务名称文本靠左 */
         width: 100%; /* 如果宽度不是100%，可能也需要调整 */
