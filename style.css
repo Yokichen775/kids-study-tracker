@@ -1250,51 +1250,36 @@ section {
         display: inline-flex;
         align-items: center;
     }
-        .wish-item {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: flex-start;
-        padding: 8px;
-        margin-bottom: 8px;
-    }
-
     .wish-info {
         display: flex;
         flex-direction: row;
         align-items: center;
-        width: 100%;
-        gap: 8px;
-        margin-bottom: 4px;
+        width: 100%;          /* 确保宽度充满 */
+        gap: 10px;            /* 设置子元素之间的间距 */
     }
-
+   
     .wish-name {
-        font-size: 14px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        flex: 1 1 auto;
+        flex: 1;              /* 占据剩余空间 */
+        white-space: nowrap;   /* 不换行 */
+        overflow: hidden;      /* 隐藏溢出 */
+        text-overflow: ellipsis; /* 显示省略号 */
+        font-size: 14px;       /* 调整字体大小 */
     }
-
+   
     .wish-stars {
         font-size: 14px;
-        margin-left: 8px;
-        white-space: nowrap;
-        flex: 0 0 auto;
+        color: #ffa801;
+        font-weight: bold;
+        white-space: nowrap;   /* 星星数量不换行 */
     }
-
+   
     .wish-actions {
         display: flex;
         gap: 5px;
-        width: 100%;
-        margin-top: 0;
-        justify-content: flex-end;
     }
-
+   
     .wish-actions button {
-        padding: 4px 8px;
+        padding: 5px 8px;
         font-size: 12px;
-        min-width: 48px;
-        flex: 1 1 auto;
     }
 }
