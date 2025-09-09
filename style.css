@@ -1285,10 +1285,7 @@ section {
     }
 
     .task-name {
-        flex: 1;              /* 占据剩余空间 */
-        white-space: nowrap;   /* 不换行 */
-        overflow: hidden;      /* 隐藏溢出 */
-        text-overflow: ellipsis; /* 显示省略号 */
-        font-size: 14px;       /* 调整字体大小 */
+        text-align: left; /* 确保任务名称文本靠左 */
+        width: 100%; /* 如果宽度不是100%，可能也需要调整 */
     }
 }
