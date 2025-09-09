@@ -946,6 +946,7 @@ button:hover {
         justify-content: flex-end;
         gap: 5px;
         margin-top: 8px;
+        width: 100%; /* 添加这一行 */
     }
     
     /* 心愿进度条在移动端的样式 */
