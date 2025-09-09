@@ -1262,11 +1262,12 @@ section {
     
     .wish-info {
         display: flex;
-        flex-direction: row;
-        align-items: center;
+        flex-direction: column;/* 名称在上，进度条在下 */
+        align-items: stretch;
         width: 100%;
-        gap: 10px;
-        margin-bottom: 8px; /* 添加底部间距，为进度条留出空间 */
+        gap: 6px;
+        margin-bottom: 8px;
+        padding-right: 60px; /* 给右上角绝对定位的 .wish-stars 让出空间，避免覆盖*/
     }
    
     .wish-name {
