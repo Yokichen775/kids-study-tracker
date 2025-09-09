@@ -1283,4 +1283,12 @@ section {
         padding: 5px 8px;
         font-size: 12px;
     }
+
+    .task-name {
+        flex: 1;              /* 占据剩余空间 */
+        white-space: nowrap;   /* 不换行 */
+        overflow: hidden;      /* 隐藏溢出 */
+        text-overflow: ellipsis; /* 显示省略号 */
+        font-size: 14px;       /* 调整字体大小 */
+    }
 }
