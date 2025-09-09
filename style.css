@@ -1234,6 +1234,15 @@ section {
         align-items: center;
         position: relative;
     }
+    /* 新增主内容容器 */
+    .wish-main {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex: 1 1 100%;
+        width: 100%;
+        position: relative;
+    }
 
     .wish-name {
         flex: 1 1 auto;
