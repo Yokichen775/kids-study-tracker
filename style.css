@@ -1251,37 +1251,90 @@ section {
         display: inline-flex;
         align-items: center;
     }
+     /* 心愿项样式修复 - 进度条问题 */
+     .wish-item {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        margin-bottom: 10px;
+        position: relative;
+    }
+    
     .wish-info {
         display: flex;
         flex-direction: row;
         align-items: center;
-        width: 100%;          /* 确保宽度充满 */
-        gap: 10px;            /* 设置子元素之间的间距 */
+        width: 100%;
+        gap: 10px;
+        margin-bottom: 8px; /* 添加底部间距，为进度条留出空间 */
     }
    
     .wish-name {
-        flex: 1;              /* 占据剩余空间 */
-        white-space: nowrap;   /* 不换行 */
-        overflow: hidden;      /* 隐藏溢出 */
-        text-overflow: ellipsis; /* 显示省略号 */
-        font-size: 14px;       /* 调整字体大小 */
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 14px;
     }
    
     .wish-stars {
         font-size: 14px;
         color: #ffa801;
         font-weight: bold;
-        white-space: nowrap;   /* 星星数量不换行 */
+        white-space: nowrap;
     }
    
     .wish-actions {
         display: flex;
         gap: 5px;
+        margin-top: 8px; /* 确保按钮与进度条有间距 */
     }
    
     .wish-actions button {
         padding: 5px 8px;
         font-size: 12px;
+    }
+
+    /* 心愿进度条修复 */
+    .wish-progress-container {
+        width: 100%;
+        margin-top: 8px;
+        position: relative;
+    }
+    
+    .wish-progress {
+        height: 12px;
+        background-color: #ecf0f1;
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background-color: #3498db;
+        border-radius: 6px;
+        transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 10px;
+        color: #fff;
+        font-weight: bold;
+        text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+        z-index: 2;
+    }
+    
+    .wish-saved-stars {
+        font-size: 12px;
+        color: #3498db;
+        margin-top: 4px;
+        text-align: right;
     }
 
    /* 任务项修复 - 增强样式 */
@@ -1371,5 +1424,68 @@ section {
         margin: 0;
         width: auto;
         min-width: 50px;
+    }
+      /* 历史记录项修改 */
+      .history-item {
+        display: flex;
+        flex-direction: row; /* 保持水平布局 */
+        justify-content: space-between; /* 内容分布在两侧 */
+        align-items: center; /* 垂直居中 */
+        padding: 10px;
+        margin-bottom: 10px;
+        position: relative;
+    }
+    
+    .record-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1; /* 占据剩余空间 */
+        margin-right: 10px;
+    }
+    
+    .record-reason {
+        font-size: 14px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 4px;
+        text-align: left;
+        line-height: 1.3;
+    }
+    
+    .record-date {
+        font-size: 12px;
+        color: #888;
+        text-align: left;
+    }
+    
+    .record-stars {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 60px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #ffa801;
+    }
+    
+    /* 不同类型的历史记录项样式 */
+    .bonus-record {
+        background-color: #e8f5e9;
+        border-left: 4px solid #00b894;
+    }
+    
+    .complete-record {
+        background-color: #e3f2fd;
+        border-left: 4px solid #2196f3;
+    }
+    
+    .fail-record {
+        background-color: #fff8e1;
+        border-left: 4px solid #ffc107;
+    }
+    
+    .redeem-record {
+        background-color: #fff0f0;
+        border-left: 4px solid #ff5252;
     }
 }
